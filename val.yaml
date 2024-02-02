@@ -1,0 +1,11 @@
+# this is the training config for YOLO
+path: ../datasets/CF_simulation
+train: images/train 
+val: images/augmented 
+test:  images/augmented  (optional)
+
+# Classes (only one class for now)
+names:
+  0: ink trace
+
+# Hyper-parameters
