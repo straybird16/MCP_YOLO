@@ -98,6 +98,7 @@ def create_yolo_annotation_from_mask(mask:os.PathLike, out:os.PathLike, add_bord
             msk = cv2.imread(pf)
             height, width, _ = msk.shape
             msk = cv2.cvtColor(msk, cv2.COLOR_BGR2GRAY)
+            msk = cv2.bitwise_not(msk)  # invert mask
             _, im = cv2.threshold(msk, 100, 255, type=cv2.THRESH_BINARY)
             if add_border_on_edge:
                 black_border = [0 for _ in range(1000)]
