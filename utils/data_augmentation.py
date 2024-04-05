@@ -6,6 +6,7 @@ import numpy as np
 import albumentations as A
 
 from utils.utils import list_file_r
+from utils.fft import inverseFDA
 from PIL import Image
 
 
@@ -59,12 +60,14 @@ def batch_augment_with_mask(images_path:os.PathLike, mask_path:os.PathLike, tran
 
     """
     # get img path files
-    img_extension = '.tif'
-    img_pfs = [f for f in os.listdir(images_path) if os.path.splitext(f)[-1] == img_extension]
+    img_extensions = ['.tif', '.bmp']
+    img_pfs = [f for f in os.listdir(images_path) if os.path.splitext(f)[-1] in img_extensions]
     if random_choice:
         rng = np.random.default_rng(seed=12345)
         sample_size = int(len(img_pfs)*random_choice)
-        img_pfs = rng.choice(img_pfs, size=sample_size, replace=False)
+        if type(random_choice)==int:
+            sample_size = random_choice
+        img_pfs = rng.choice(img_pfs, size=sample_size)
     # if using FDA
     if FDA_targets:
         # target is a single image
@@ -81,7 +84,7 @@ def batch_augment_with_mask(images_path:os.PathLike, mask_path:os.PathLike, tran
     
     for img_pf in img_pfs:
         filename = os.path.splitext(os.path.split(img_pf)[-1])[0]
-        img_filename = filename + '.tif'
+        img_filename = filename + os.path.splitext(img_pf)[-1]
         img_dst_pf = os.path.normpath(os.path.join(images_path, target_folder, img_filename))
         # get corresponding mask path files
         
@@ -108,13 +111,37 @@ def batch_augment_with_mask(images_path:os.PathLike, mask_path:os.PathLike, tran
             os.makedirs(os.path.split(img_dst_pf)[0])
         if not os.path.exists(os.path.split(mask_dst_pf)[0]):
             os.makedirs(os.path.split(mask_dst_pf)[0])
+        
+        temp = 0
+        while os.path.isfile(img_dst_pf):
+            temp+=1
+            img_dst_pf = os.path.normpath(os.path.join(images_path, target_folder, filename+str(temp)+'.tif'))
+            mask_dst_pf = os.path.normpath(os.path.join(mask_path, target_folder, filename+str(temp)+'.tif'))
         img.save(img_dst_pf)
         mask.save(mask_dst_pf)
 
     return
 
 
-
+def batch_invers_FDA(src:os.PathLike, FDA_targets:os.PathLike, beta:float=0.4, p=0.2, in_place=True):
+    img_extensions = ['.tif']
+    img_pfs = [f for f in os.listdir(src) if os.path.splitext(f)[-1] in img_extensions]
+    targets = list_file_r(FDA_targets, extension=['.tif'])
+    rng = np.random.default_rng()
+    for img_path in img_pfs:
+        # only apply to come percent of the images
+        if np.random.rand() >= p:
+            continue
+        tgt_path = rng.choice(targets)
+        source_img, target_img = Image.open(os.path.join(src, img_path)), Image.open(tgt_path)
+        target_img = target_img.resize(source_img.size)
+        source_img, target_img = np.array(source_img), np.array(target_img)
+        random_beta = rng.random()*beta
+        result = Image.fromarray(inverseFDA(source_img, target_img, beta=random_beta))
+        if in_place:
+            result.save(os.path.join(src, img_path))
+        
+    return
 
 
 
