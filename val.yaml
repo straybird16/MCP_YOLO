@@ -1,11 +1,9 @@
 # this is the training config for YOLO
 path: ../datasets/CF_simulation
-train: images/train 
-val: images/augmented 
-test:  images/augmented  (optional)
+train: images/line/base_large/train 
+val: images/line/base_large/val 
+test:  # test images (optional)
 
 # Classes (only one class for now)
 names:
-  0: ink trace
-
-# Hyper-parameters
+  0: hydrophobic area

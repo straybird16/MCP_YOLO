@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import cv2
 import shutil
 from pathlib import Path
@@ -140,5 +141,28 @@ def create_yolo_annotation_from_mask(mask:os.PathLike, out:os.PathLike, add_bord
             """ with open(bbox_fp, 'w') as mask_bbox_file:
                 mask_bbox_file.write(bbox_text)
                 mask_bbox_file.close() """
+
+def save_mask_from_yolo_results(results):
+    for test_result in results:
+        if not test_result.masks:
+            continue
+
+        masks = test_result.masks.xy
+        h, w = test_result.orig_shape
+        blank_mask = np.zeros([h, w, 3],dtype=np.uint8)
+        blank_mask.fill(255)
+        # path
+        img_path = test_result.path
+        img_name = os.path.split(img_path)[1]
+        folder = os.path.split(os.path.splitext(img_path)[0])[0]
+        dst_folter = os.path.join(folder, 'mask')
+        if not os.path.exists(dst_folter):
+            os.makedirs(dst_folter)
+        dst_fp = os.path.join(dst_folter, img_name)
+        for mask in masks:
+            cv2.fillPoly(blank_mask, pts=[mask.astype(np.int32)], color=(0, 0, 0))
+        
+        # save mask
+        cv2.imwrite(dst_fp, blank_mask)
 
 #def yolo_to_

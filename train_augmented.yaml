@@ -1,24 +1,24 @@
 # this is the training config for YOLO
 path: ../datasets/CF_simulation
-train: images/augmented/train 
-val: images/augmented/val 
+train: images/line/base_large/train 
+val: images/line/base_large/val 
 test:  # test images (optional)
 
 # Classes (only one class for now)
 names:
-  0: ink trace
+  0: hydrophobic area
 
 # Hyper-parameters
-#reg_max: 128
+#reg_max: 256
 # Augmentations
-hsv_h: 0.1  # image HSV-Hue augmentation (fraction)
-hsv_s: 0.9  # image HSV-Saturation augmentation (fraction)
-hsv_v: 0.9  # image HSV-Value augmentation (fraction)
+hsv_h: 0.8  # image HSV-Hue augmentation (fraction)
+hsv_s: 0.8  # image HSV-Saturation augmentation (fraction)
+hsv_v: 0.8  # image HSV-Value augmentation (fraction)
 degrees: 90.0  # image rotation (+/- deg)
 #translate: 0.2  # image translation (+/- fraction)
 #scale: 0.2  # image scale (+/- gain)
 shear: 0.5  # image shear (+/- deg) from -0.5 to 0.5
-perspective: 0.7  # image perspective (+/- fraction), range 0-0.001
+perspective: 0.1  # image perspective (+/- fraction), range 0-0.001
 #flipud: 0.3  # image flip up-down (probability)
 #fliplr: 0.5  # image flip left-right (probability)
 mosaic: 0.2  # image mosaic (probability)

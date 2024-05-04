@@ -60,7 +60,7 @@ def batch_augment_with_mask(images_path:os.PathLike, mask_path:os.PathLike, tran
 
     """
     # get img path files
-    img_extensions = ['.tif', '.bmp']
+    img_extensions = ['.tif', '.bmp', '.jpg', '.png']
     img_pfs = [f for f in os.listdir(images_path) if os.path.splitext(f)[-1] in img_extensions]
     if random_choice:
         rng = np.random.default_rng(seed=12345)
@@ -126,7 +126,7 @@ def batch_augment_with_mask(images_path:os.PathLike, mask_path:os.PathLike, tran
 def batch_invers_FDA(src:os.PathLike, FDA_targets:os.PathLike, beta:float=0.4, p=0.2, in_place=True):
     img_extensions = ['.tif']
     img_pfs = [f for f in os.listdir(src) if os.path.splitext(f)[-1] in img_extensions]
-    targets = list_file_r(FDA_targets, extension=['.tif'])
+    targets = list_file_r(FDA_targets, extension=['.tif', '.bmp', '.jpg', '.png'])
     rng = np.random.default_rng()
     for img_path in img_pfs:
         # only apply to come percent of the images
