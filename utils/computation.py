@@ -142,7 +142,7 @@ def get_width_by_Hough_lines(nms_lines:list, black_white_mask:np.ndarray, rotati
     mask_y = mask_x.T
     dx, dy = convolve2d(black_white_mask, mask_x, mode='same'),  convolve2d(black_white_mask, mask_y, mode='same')
     # set window size for ambient gradient computation
-    neiborhood_size = 7
+    neiborhood_size = 13
     neighborhood_mask = np.ones((neiborhood_size, neiborhood_size))
     dx, dy = convolve2d(dx, neighborhood_mask, mode='same')[...,None],  convolve2d(dy, neighborhood_mask, mode='same')[...,None]
     dx, dy = dx/neiborhood_size**2, dy/neiborhood_size**2
@@ -152,31 +152,36 @@ def get_width_by_Hough_lines(nms_lines:list, black_white_mask:np.ndarray, rotati
     for rho,theta in nms_lines:
         # get coordinates of pixels over the line
         a, b = np.cos(theta), np.sin(theta)
+        #print(a,b)
         x0, y0 = a*rho,  b*rho
         x1, y1 = int(x0 + width*(-b)), int(y0 + height*(a)) 
         x2, y2 = int(x0 - width*(-b)), int(y0 - height*(a))
 
         rr, cc = line(x1,y1,x2,y2)
+        #print(x1,y1,x2,y2)
 
         coords = np.array(list(zip(cc,rr)))
         # select coordinates within image
         coords = coords[(coords >= 0).all(axis=-1)]
-        coords = coords[coords[:,0] < width]
-        coords = coords[coords[:,1] < height]
+        coords = coords[coords[:,0] < height]
+        coords = coords[coords[:,1] < width]
 
+        print(nabla_I.shape, coords.shape)
         # compute dominant orientation of gradient
         grad_x, grad_y = nabla_I[tuple(coords.T)].mean(axis=0)
-        d = (grad_x**2 + grad_y**2)**.5
+        d = (grad_x**2 + grad_y**2)**.5 + 1e-7
         rotation = np.arcsin(grad_y/d)
         theta = theta + np.pi if rho<0 else theta
-        #print("Theta: {}; line gradient angle: {}".format(theta, rotation))
+        print("Theta: {}; line gradient angle: {}".format(theta, rotation))
         difference_1, difference_2 = abs((rotation + theta)%np.pi), abs((-rotation + theta)%np.pi)
         difference_1, difference_2 = min(difference_1, np.pi-difference_1),  min(difference_2, np.pi-difference_2)
         #print(np.arctan(grad_y/grad_x))
         # if the gradient direction is roughly the same as the line (polar representation), the line is the starting edge(left to right) of the pattern
         if difference_1 < difference_2 and difference_1 <= rotation_diff_threshold:
+            print('Start')
             starting_rho = rho
         elif difference_2 <= rotation_diff_threshold and starting_rho:
+            print('End')
             widths.append(rho-starting_rho)
             starting_rho=None
     # classify image as invalid if too much differences in width
