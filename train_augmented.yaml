@@ -9,6 +9,8 @@ names:
   0: hydrophobic area
 
 # Hyper-parameters
+# training config
+batch: -1
 #reg_max: 256
 # Augmentations
 hsv_h: 0.8  # image HSV-Hue augmentation (fraction)

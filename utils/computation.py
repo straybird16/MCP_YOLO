@@ -46,14 +46,14 @@ def calculate_widths(inference_results, img_path=None):
             if distances_r.sum() <= distances.sum():  # fit x from y if line is better explained with vertical direction fitting
                 distances, P = distances_r, P_r
                 x, y = y, x
-            selection = np.logical_and(np.less_equal(np.percentile(distances, 50), distances), np.greater_equal( np.percentile(distances, 100), distances))
+            selection = np.logical_and(np.less_equal(np.percentile(distances, 25), distances), np.greater_equal( np.percentile(distances, 100), distances))
             #distances = distances[selection]
             # robust fit
             x, y = x[selection], y[selection]
             X = np.concatenate((np.ones_like(x), x), axis=-1)
             intercept, slope = linear_fit(X,y)
             distances, _ = projection_error2d(x, y, intercept, slope)  # get projection distances
-            selection = np.logical_and(np.less_equal(np.percentile(distances, 50), distances), np.greater_equal( np.percentile(distances, 100), distances))
+            selection = np.logical_and(np.less_equal(np.percentile(distances, 25), distances), np.greater_equal( np.percentile(distances, 100), distances))
             distances = distances[selection]
             estimated_widths = distances.mean()*2
             #print('Elapsed time: {:.5e}'.format(time.time()-start))
@@ -73,6 +73,8 @@ def draw_kernels(inference_results, img_path=None):
         draw = ImageDraw.Draw(img) 
         w, h = img.size
     for inference_result in inference_results:
+        if not inference_result.masks:
+            continue
         for coos in inference_result.masks.xy:
             start = time.time()
             # get LMS estimation
@@ -85,7 +87,6 @@ def draw_kernels(inference_results, img_path=None):
             distances_r, P_r = projection_error2d(y, x, intercept_r, slope_r)  # get projection distances
             if distances_r.sum() <= distances.sum():  # fit x from y if line is better explained with vertical direction fitting
                 intercept, slope, P = intercept_r, slope_r, P_r[::-1]
-            print(P.shape)
             # draw polygons
             B = np.concatenate((x, y), axis=-1).transpose()
             draw.line(B.T.flatten())
@@ -104,11 +105,12 @@ def draw_kernels(inference_results, img_path=None):
             draw.line(draw_points, fill='green', width=10)
             draw.line(draw_points_projection, fill='blue', width=5)
             
-
-    #img.show()
     return img
 
-def get_image_widths_by_path_names(inference_results):
+def get_image_widths_by_path_names(inference_results:list):
+    """
+    return the relative width of the generated lines in the image by looking up the file name in the YOLO inference results
+    """
     original_size = 1000
     widths=[]
     for inference_result in inference_results:
