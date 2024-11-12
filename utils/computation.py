@@ -1,13 +1,14 @@
 import time
 
+import ultralytics
+
 from PIL import Image, ImageDraw
 import numpy as np
 import os
 
 def linear_fit(X, y):
     XT = X.transpose()
-    XTX = XT @ X
-    beta = np.linalg.inv(XTX) @ (XT @ y)
+    beta = np.linalg.inv(XT @ X) @ (XT @ y)
     
     beta=beta.reshape(-1)
     intercept, slope = beta[0], beta[1]
@@ -32,8 +33,10 @@ def calculate_widths(inference_results, img_path=None):
         w, h = img.size
     for inference_result in inference_results:
         overall_width = 0
+        assert type(inference_result) == ultralytics.engine.results.Results, "Inference result should be of type 'ultralytics.engine.results.Results'!"
         if not inference_result.masks:
-            return 0
+            #widths.append(overall_width)
+            continue
         for coos in inference_result.masks.xy:
             start = time.time()
             # get LMS estimation
@@ -63,7 +66,7 @@ def calculate_widths(inference_results, img_path=None):
         overall_width /= len(inference_result.masks.xy)
         overall_width = overall_width / sum(inference_result.orig_shape) * 2
         widths.append(overall_width)
-
+    #print(widths)
     return np.stack(widths)[...,None]
     #img.show()
 
