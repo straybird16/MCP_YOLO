@@ -35,7 +35,7 @@ def calculate_widths(inference_results, img_path=None):
         overall_width = 0
         assert type(inference_result) == ultralytics.engine.results.Results, "Inference result should be of type 'ultralytics.engine.results.Results'!"
         if not inference_result.masks:
-            #widths.append(overall_width)
+            #widths.append(0)
             continue
         for coos in inference_result.masks.xy:
             start = time.time()
